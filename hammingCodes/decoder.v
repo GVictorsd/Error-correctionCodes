@@ -31,5 +31,5 @@
 		check[2] <= w4;
 		check[3] <= w5;
 	end
-
+	
 	endmodule
