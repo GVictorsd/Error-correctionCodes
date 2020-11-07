@@ -36,7 +36,7 @@
 		#4 datain<=1;
 		#4 datain<=0;
 		#4 $display("%5b",{dut.mem[0],dut.mem[1],dut.mem[2],dut.mem[4],dut.mem[8]}); done<=1;
-		#4 $finish;
+		#20 $finish;
 	end
 
 	initial

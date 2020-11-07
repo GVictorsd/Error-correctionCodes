@@ -6,14 +6,17 @@
 
 	`include "encoder.v"
 	`include "decoder.v"
+	`include "noise.v"
 	`timescale 10ns/1ns
 
 	module bord;
 
 	reg datain,clk,dend;
-	wire dataout,clk2,done;
+	reg[3:0] addr;
+	wire dataout,clk2,donei,noisedata;
 	encoder encode(datain,clk,dataout,clk2);
-	decoder decode(dataout,clk2,done);
+	decoder decode(noisedata,clk2,done);
+	noise nois(dataout,clk2,addr,noisedata);
 
 	// generate clock(clk) to send data to encoder
 	always #2 
@@ -22,11 +25,11 @@
 	//send data to encoder
 	initial
 	begin
-		clk<=0; dend<=0;
+		clk<=0; dend<=0;addr<=4'b1100;
 		   datain<=0;	// special bit always set to 0
 		#4 datain<=0;	// special bit always set to 0
 		#4 datain<=0;	// special bit always set to 0
-		#4 datain<=0;
+		#4 datain<=0; 
 		#4 datain<=0;	// special bit always set to 0
 		#4 datain<=0;
 		#4 datain<=1;
@@ -51,4 +54,12 @@
 			$display("%5b",{decode.parity,decode.check});
 			$finish;
 		end
+
+	initial
+	begin
+		$dumpfile("vars.vcd");
+		$dumpvars(0,bord);
+	end
+
 	endmodule
+
