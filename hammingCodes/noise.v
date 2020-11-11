@@ -1,14 +1,15 @@
 	/************************ NOISE MODULE ***************************
 
 	* used to induce noise during data transmision...
-	* input: datain, clock and addr
-	* flips the (addr)th bit and outputs data through dataout
+	* input: datain, clock, enable, addr1 and addr2
+	* flips (addr1 and addr2)th bit if enable is set 
+	* and outputs data through dataout
 
 	*****************************************************************/
 
 	module noise(
-		input datain,clk,
-		input[3:0] addr,
+		input datain,clk,enable,
+		input[3:0] addr1,addr2,
 		output dataout);
 	reg[3:0] count;
 	reg neg;
@@ -23,7 +24,7 @@
 
 	always@ (negedge clk)
 	begin
-		if(count == addr)
+		if((count == addr1 | count == addr2) & enable)
 			neg = 1'b1;
 		else
 			neg = 1'b0;
