@@ -22,6 +22,11 @@
 
 	assign dataout = neg ? ~datain: datain;
 
+	// Display input and output bits...
+	always@ (clk)begin
+		$display("%b, %b ,%b", datain, dataout, ~clk);
+	end
+
 	always@ (negedge clk)
 	begin
 		if((count == addr1 | count == addr2) & enable)
