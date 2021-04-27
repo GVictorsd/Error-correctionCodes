@@ -1,4 +1,5 @@
-########################  MODULATOR  ##############################
+
+###################  MODULATOR  ########################
 
 # This unit takes in data to be transfered in digital
 # form and converts it into modulated analog form...
@@ -8,7 +9,7 @@
 # PROCESSING: Frequency shift keying(FSK)
 # OUTPUT: Modulated data in analog form
 
-####################################################################
+########################################################
 
 # import dependencies
 import pandas as pd
@@ -18,30 +19,18 @@ import os
 import helpers
 
 
-# helpful functions
-def signal(n, freq):
-    '''
-    function defining the frequency modulation
-    signal...
-    Input: value(n) and frequency(freq)
-    Returns: value of sine(n) with frequency(freq) which is
-        normalized to oscilate between 0 and 1
-    '''
-    return 0.5+(np.sin(freq*i))/2
-
-
+# check if input exists...
 if not os.path.exists('./file.csv'):
-    print('error: No file.csv file found!!')
+    print('error: No raw.csv file found!!')
     exit(-1)
 
-# A bit of preprocessing the input file...
-#####
-''' TODO: need not perform always!!!'''
+# A bit of preprocessing input file...
+# just a simple formating, no big deal :)
 removeList = [0,1,2,3,4,37,38,39,40,41]
-helpers.preprocess('file.csv',removeList)
+helpers.preprocess('raw.csv','file.csv',removeList)
 
-# import data from file.csv
-data = pd.read_csv('./file.csv')
+# import data from file.csv as pandas dataframe
+data = pd.read_csv('./file.csv', names = [0,1,2])
 
 
 clk = data[data.columns[2]]         # get clock data from the DataFrame
@@ -54,26 +43,37 @@ data = list(data)
 time = [i for i in range(0, len(data))]
 
 samplingFreq = 50   # sampling frequency for modulated analog output
-# sampled time and clock
+# sampled time and clock...
 mod_time = [ i/samplingFreq  for i in range(0, samplingFreq*len(data)) ]
 mod_clk = [ clk[int(i/samplingFreq)] for i in range(0, samplingFreq*len(clk)) ]
 
 
 freq = []   # list to hold modulated signal
-high_frequency = 10
-low_frequency = 5
+high_frequency = 2
+low_frequency = 0.5
+
+
+# define the actual modulated signal...
 for i in mod_time:
     if(data[int(i)] >= 0.5):
-        freq.append(signal(i, high_frequency))
+        # if value of input signal is greater than threshold
+        # use high frequency signal(it's digital 1)
+        freq.append(helpers.signal(i, high_frequency))
     else:
-        freq.append(signal(i, low_frequency))
+        # else use low frequency signal(it's digital 0)
+        freq.append(helpers.signal(i, low_frequency))
 
+
+# output the modulated signal to a file for receiver section
+outputfile = open('signal.csv', 'w')
+for i in freq:
+    outputfile.write(i.astype('str') + '\n')
+outputfile.close()
 
 # Plot the signals...
-#plt.plot(time, dat, '-p', markersize=5)
-#plt.plot(time, clk)
 plt.plot(mod_time, mod_clk)     #clock signal
 plt.plot(time, data)            #data signal
 plt.plot(mod_time, freq)        # modulated signal
-plt.show()
 
+
+plt.show()

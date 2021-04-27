@@ -1,8 +1,25 @@
-import os
 
-def preprocess(inputfile, skiplist):
+#################### SOME USEFUL FUNCTIONS ###################
+
+# definations of some useful functions used in the 
+# main programs
+
+##############################################################
+
+import os
+import numpy as np
+
+def preprocess(inputfile, outputfile, skiplist):
+    '''
+    function to remove the unwanted lines given out by the
+    verilog module...
+    just to clean up the input file to get perfect csv file...
+    nothing fancy :)
+    '''
+    
+    # check if file exists
     if not os.path.exists(inputfile):
-        return -1
+        return None
 
     tempfile = 'temp'
     counter = 0
@@ -11,7 +28,6 @@ def preprocess(inputfile, skiplist):
     infile = open(inputfile, 'r')
     dumfile = open(tempfile, 'w')
     
-    dumfile.write('0, 1, 2')
     for line in infile:
         if counter not in skiplist:
             dumfile.write(line)
@@ -20,8 +36,7 @@ def preprocess(inputfile, skiplist):
         counter += 1
 
     if isSkipped:
-        os.remove(inputfile)
-        os.rename(tempfile, inputfile)
+        os.rename(tempfile, outputfile)
     else:
         os.remove(tempfile)
 
@@ -29,3 +44,12 @@ def preprocess(inputfile, skiplist):
     dumfile.close()
 
     return 0
+
+def signal(n, freq):
+    '''
+    Input: value(n) and frequency(freq)
+    Returns: value of sine(n) with frequency(freq)
+    '''
+    return (np.sin(2*np.pi*freq*n))
+
+
