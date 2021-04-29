@@ -13,6 +13,31 @@ The intuation here, is by dividing the actual data block into smaller groups and
 ## Implementation:
 The project uses sender and a receiver scheme. Sender has his actual data along with an encoder used to encode the data before transmitting it. Similarly at the receiver end we have got a decoder which scans through the received data to detect any errors that might have crept in. The message is transmitted in a synchronous serial manner. Actual data is sent to the encoder from the board module. The encoder calculates and sets the respective special bits. Once it's done, it starts to send data out in sync with a clock. The data then passes through a noise module which can be used to induce errors and finally to the decoder.
 
+## Modulation:
+Usually the digital data needs to be transmitted from a device to other via a medium. In solid medium like cables, it can be easily done by encoding data in the form of voltages. But in a wireless transmission scheme, a more complex setup is required.
+Usually, the actual digital data is encoded on some other high frequency carrier signal. The result- we get a messy analog signal encoding our digital data. There are many good digital modulation techniques which have their own advantages and applications
+The one implemented here is called Frequency Shift Keying or in short FSK.
+The goal here is to somehow encode each binary bit in the form of frequency of the modulated signal. 
+To make things simple here, assume we want to send a digital 1. Since sending this bit directly through air is infeasible, we convert the bit to a sine wave with some frequency which is analog in nature. This can then be transmitted to long distances through an antenna.
+The next question we would ask is how to encode out message? well, in frequency shift keying technique, we represent a logical 1 with a high frequency sine signal and to represent a 0, we use a low frequency signal. These frequencies differ considerably and usually both of the frequencies are high in terms of GHz.
+
+## Demodulation:
+Ok, so now we have encoded our data in an analog wave and we were sucessful in sending this wave over the Atlantic! cool. But how can we get back our actual digital data at after we receive it? We need some magical box which would take in the analog wave we received and give out digital data somehow. Demodulation is the process which does exactly this.
+Since we are dealing with Frequency Shift Keying, we need to somehow detect the frequency at some point in time. By comparing this frequency with the referance frequencies used while encoding, we can determine whether the bit we are looking at is zero or a one. To determine frequency, we again have various methods and mathematical insights. The one used here is as follows:
+consider the following trignometric equations:
+
+**sin(x)sin(y) = 1/2(cos(x-y) - cos(x+y))**
+**sin(w1t)sin(w2t) = 1/2(cos(w1-w2)t - cos(w1+w2)t)**
+
+If we have two sin waves with same frequencies(w1 = w2), on multiplying them, in right part of the above equation, cos(w1-w2)t woud become one. so the resultant wave would have half the amplitude of cos. But what interests us is that the entire wave would shift above the x-axis.
+With that in out toolkit, we can now demodulate our signal. First we multiply the received analog wave which is a combination of low and high frequency sine waves with a pure high frequency and a pure low frequency sine wave individually. Then at some point in time we calculate mean of these modified waves. Since shifting above the x-axis will result in a positive mean, the wave with positive mean will denote the digital bit at that time instant.
+So, by repeating this step to the entire time where our signals are defined, we effectively get back out actual digital data.
+
+## Trying out modulation scripts:
+The modulation functionality is performed by python3 script in tx.py file and the demodulation is done by the rx.py script.
+Dependencies:
+Few basic python modules like pandas, numpy and matplotlib are required
+
 ## Building from source:
  This project is built and developed using [Icarus verilog](http://iverilog.icarus.com/) and [gtkwave](http://gtkwave.sourceforge.net/), an open source verilog interpreter and waveform viewer. If iverilog is installed in the system, program files can be compiled using:
 ```
@@ -26,4 +51,17 @@ All the test benches written here, generates a dump file named "vars.vcd" by def
 ```
 gtkwave vars.vcd
 ```
+
+
+## The Entire setup:
+The scheme that is setup here is the binary data is encoded according to hamming codes and then the entire data is modulated using Frequency Shift keying technique. This signal is received by the receiver where its demodulated and error detection and correction are done. The tx.py script requires a file named raw.csv for input data. This file simply contains the output produced by the verilog module after error encoding. It should be done something like
+
+```
+iverilog -o output_file.out board.v
+vvp output_file.out > raw.csv
+```
+
+Then tx.py can be executed which produces output file named "signal.csv"(modulated signal, input for rx.py) and corresponding plots. rx.py takes signal.csv as input to perform demodulation, to give out digital data and plots as output.
+
+
 The code is intended to study error correction at hardware level and is not synthesized or tested on a ASIC chip or an FPGA board. Some changes may be required to synthesize the design.
